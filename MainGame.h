@@ -1,4 +1,5 @@
 #include "Sound.h"
+#include "Input.h"
 #include "Screen.h"
 #include "VGA.h"
 #include <stdlib.h>
@@ -58,11 +59,65 @@ void mainGameLoop() {
 	}
 }
 
+void playerJump()
+{
+	if (IsJumping)
+	{
+		if(player_posY <= 30) // as higher as he can get
+		{
+			landing = true;
+		}
+
+		if(landing)
+		{
+			if (IsDropping)
+			{
+				down_velocity = defaultFasterVelocity;
+			}
+			else
+			{
+				down_velocity = defaultVelocity;	
+			}
+			player_posY+=down_velocity;
+		}
+		else
+		{
+			player_posY-=15;
+		}
+
+		if (player_posY >= 80) // on ground position
+      	{
+			player_posY = 80;
+			IsJumping = false;
+			IsDropping = false;
+			landing = false;
+			down_velocity = defaultVelocity;
+      	}
+	}
+}
+
+void processEvent(enum event_t ev){
+	if (ev == event_1)
+	{
+		if (!IsJumping)
+		{
+			IsJumping = true;
+		}
+	}
+	else if(ev == event_2)
+	{
+		if(IsJumping)
+		{
+			IsDropping = true;
+		}
+	}
+}
+
 void menu() {
 	if (PlayingSound) {
 		AudioFillBuffer();
 	}
-	VGA.printtext(50, 25, "Dino");
+	VGA.printtext(50, 25, "Dinosaur");
 	VGA.printtext(50, 40, "Runner!");
 	if (!digitalRead(FPGA_SW_0)) {
 		VGA.setColor(BLUE);
@@ -88,11 +143,21 @@ void printScoreOnScreen() {
 }
 
 void endless() {
-	if((millis() - LastFrameTime) > FrameDelay){
-		LastFrameTime = millis();
-		drawPlayer();
-		player_lastKnown_posX = player_posX;
-      	player_lastKnown_posY = player_posY;
+	VGA.clear();
+	while(true){
+		enum event_t ev = hasEvent();
+		if (ev!=event_none) {
+        	processEvent(ev);
+      	}
+
+		if((millis() - LastFrameTime) > FrameDelay){
+			LastFrameTime = millis();
+			drawPlayer();
+			player_lastKnown_posX = player_posX;
+	      	player_lastKnown_posY = player_posY;
+
+	      	playerJump();
+		}
 	}
 }
 

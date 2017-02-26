@@ -9,11 +9,11 @@ void ScreenSetup()
 }
 
 void drawPlayer(){
-	if (mainCharacterIsJumping)
+	if (IsJumping)
 	{
-		player_layer_count = 0;
+		player_layer_count = 2;
 	}
-	else if (mainCharacterIsDucking)
+	else if (IsDucking)
 	{
 		player_layer_count = 0;
 	}
