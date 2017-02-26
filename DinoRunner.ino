@@ -4,12 +4,12 @@
 
 void setup()
 {
-  SoundSetup();
-  ScreenSetup();
-  Serial.begin(9600);
+	SoundSetup();
+	ScreenSetup();
+	Serial.begin(9600);
 }
 
 void loop()
-{  
-  mainGameLoop();  
+{
+	mainGameLoop();
 }
