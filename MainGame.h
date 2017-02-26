@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-unsigned const int FrameDelay = 100;
+unsigned const int FrameDelay = 150;
 unsigned long LastFrameTime;
 
 const char MENU_STATE = 0;

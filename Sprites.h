@@ -11,7 +11,7 @@ bool mainCharacterIsJumping = false;
 bool mainCharacterIsDucking = false;
 
 int player_posX = 5;
-int player_posY = (Screen_height - (player_height+15));
+int player_posY = (Screen_height - (player_height+5));
 
 int player_lastKnown_posX;
 int player_lastKnown_posY;
