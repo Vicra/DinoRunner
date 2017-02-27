@@ -144,6 +144,7 @@ void printScoreOnScreen() {
 
 void endless() {
 	VGA.clear();
+	drawGroundLine();
 	while(true){
 		enum event_t ev = hasEvent();
 		if (ev!=event_none) {

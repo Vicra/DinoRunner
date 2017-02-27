@@ -27,3 +27,7 @@ void drawPlayer(){
     VGA.clearArea(player_lastKnown_posX,player_lastKnown_posY,player_width,player_height);  
     VGA.writeArea(player_posX,player_posY,player_width,player_height,player_layers[player_layer_count]);
 }
+
+void drawGroundLine(){
+	VGA.writeArea(0,105,160,1,ground);// posx, posy, width, height, sprite
+}
