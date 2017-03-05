@@ -4,9 +4,8 @@
 #include "VGA.h"
 #include <stdlib.h>
 
-
 unsigned const int FrameDelay = 150;
-unsigned long LastFrameTime;
+unsigned long LastFrameTime;	
 
 const char MENU_STATE = 0;
 const char ENDLESS_STATE = 1;
@@ -23,6 +22,7 @@ int score = 0;
 int bestScoreFirst = 0;
 int bestScoreSecond = 0;
 int bestScoreThird = 0;
+int scoreTimeCount = 0;
 
 void menu();
 void endless();
@@ -130,28 +130,36 @@ void printScoreOnScreen() {
 	char sc [4];
 	itoa(score, sc, 10);
 	VGA.setColor(WHITE);
-	VGA.printtext(110, 5, "Sc");
-	VGA.printtext(135, 5, sc);
-	VGA.setColor(WHITE);
+	VGA.printtext(120, 0, sc);
+}
+
+void printScoreLabel(){
+	VGA.printtext(70, 0, "Score:");
 }
 
 void endless() {
 	VGA.clear();
 	drawGroundLine();
+	printScoreLabel();
 	while(true){
 		enum event_t ev = hasEvent();
 		if (ev!=event_none) {
         	processEvent(ev);
       	}
-
-		if((millis() - LastFrameTime) > FrameDelay){
+      	int frame = millis() - LastFrameTime;
+		if(frame > FrameDelay){
 			LastFrameTime = millis();
 			drawPlayer();
 			player_lastKnown_posX = player_posX;
 	      	player_lastKnown_posY = player_posY;
-
 	      	playerJump();
 		}
+		if(scoreTimeCount >= 11000){
+			scoreTimeCount = 0;
+			score ++ ;
+			printScoreOnScreen();
+		}
+		scoreTimeCount++;
 	}
 }
 
