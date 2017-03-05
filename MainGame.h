@@ -119,16 +119,9 @@ void menu() {
 	}
 	VGA.printtext(50, 25, "Dinosaur");
 	VGA.printtext(50, 40, "Runner!");
-	if (!digitalRead(FPGA_SW_0)) {
-		VGA.setColor(BLUE);
-	}
 	VGA.printtext(40, 53, "1.Start Game");
 	VGA.printtext(40, 66, "2.Scores");
 	VGA.printtext(40, 79, "3.Instructions");
-	VGA.setColor(WHITE);
-	if (digitalRead(FPGA_SW_0)) {
-		VGA.setColor(BLUE);
-	}
 	VGA.setColor(WHITE);
 	checkInputFromMenu();
 }
