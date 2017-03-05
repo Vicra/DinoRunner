@@ -31,3 +31,7 @@ void drawPlayer(){
 void drawGroundLine(){
 	VGA.writeArea(0,105,160,1,ground);// posx, posy, width, height, sprite
 }
+
+void drawDots(){
+	
+}

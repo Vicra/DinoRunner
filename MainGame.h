@@ -153,10 +153,11 @@ void endless() {
 			player_lastKnown_posX = player_posX;
 	      	player_lastKnown_posY = player_posY;
 	      	playerJump();
+	      	drawDots();
 		}
 		if(scoreTimeCount >= 11000){
 			scoreTimeCount = 0;
-			score ++ ;
+			score ++;
 			printScoreOnScreen();
 		}
 		scoreTimeCount++;
