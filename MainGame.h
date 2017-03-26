@@ -4,8 +4,8 @@
 #include "VGA.h"
 #include <stdlib.h>
 
-unsigned const int FrameDelay = 150;
-unsigned long LastFrameTime;	
+unsigned const int FrameDelay = 120;
+unsigned long LastFrameTime;
 
 const char MENU_STATE = 0;
 const char ENDLESS_STATE = 1;
@@ -23,6 +23,7 @@ int bestScoreFirst = 0;
 int bestScoreSecond = 0;
 int bestScoreThird = 0;
 int scoreTimeCount = 0;
+int cactusTimeCount = 0;
 
 void menu();
 void endless();
@@ -32,6 +33,8 @@ void checkCollisions();
 void scores();
 void saveScore(int score);
 void instructions();
+void detectCollisions();
+void detectCollisionsForObject(int x, int y, int width, int height, int type);
 
 boolean scoreRendered = false;
 boolean instructionsRendered = false;
@@ -59,55 +62,44 @@ void mainGameLoop() {
 	}
 }
 
-void playerJump()
-{
+void playerJump() {
 	if (IsJumping)
 	{
-		if(player_posY <= 30) // as higher as he can get
-		{
+		if (player_posY <= 30) { // as higher as he can get
 			landing = true;
 		}
 
-		if(landing)
-		{
-			if (IsDropping)
-			{
+		if (landing) {
+			if (IsDropping) {
 				down_velocity = defaultFasterVelocity;
 			}
-			else
-			{
-				down_velocity = defaultVelocity;	
+			else {
+				down_velocity = defaultVelocity;
 			}
-			player_posY+=down_velocity;
+			player_posY += down_velocity;
 		}
-		else
-		{
-			player_posY-=15;
+		else {
+			player_posY -= 15;
 		}
 
-		if (player_posY >= 80) // on ground position
-      	{
+		if (player_posY >= 80) { // on ground position
 			player_posY = 80;
 			IsJumping = false;
 			IsDropping = false;
 			landing = false;
 			down_velocity = defaultVelocity;
-      	}
+		}
 	}
 }
 
-void processEvent(enum event_t ev){
-	if (ev == event_1)
-	{
-		if (!IsJumping)
-		{
+void processEvent(enum event_t ev) {
+	if (ev == event_1) {
+		if (!IsJumping) {
 			IsJumping = true;
 		}
 	}
-	else if(ev == event_2)
-	{
-		if(IsJumping)
-		{
+	else if (ev == event_2) {
+		if (IsJumping) {
 			IsDropping = true;
 		}
 	}
@@ -126,6 +118,40 @@ void menu() {
 	checkInputFromMenu();
 }
 
+void drawHearts() {
+	int heartWidth = 10;
+	int heartHeight = 8;
+
+	int heart1x = 10;
+	int heart1y = 0;
+
+	int heart2x = 25;
+	int heart2y = 0;
+
+	int heart3x = 40;
+	int heart3y = 0;
+
+	VGA.setColor(BLACK);
+
+	VGA.clearArea(heart1x, heart1y, heartWidth, heartHeight);
+	VGA.clearArea(heart2x, heart2y, heartWidth, heartHeight);
+	VGA.clearArea(heart3x, heart3y, heartWidth, heartHeight);
+
+	if (vidas > 0) {
+		VGA.writeArea(heart1x, heart1y, heartWidth, heartHeight, heartcontainer);
+		if (vidas > 1) {
+			VGA.writeArea(heart2x, heart2y, heartWidth, heartHeight, heartcontainer);
+			if (vidas > 2) {
+				VGA.writeArea(heart3x, heart3y, heartWidth, heartHeight, heartcontainer);
+			}
+		}
+	}
+}
+
+void redraw() {
+
+}
+
 void printScoreOnScreen() {
 	char sc [4];
 	itoa(score, sc, 10);
@@ -133,35 +159,68 @@ void printScoreOnScreen() {
 	VGA.printtext(120, 0, sc);
 }
 
-void printScoreLabel(){
+void printScoreLabel() {
 	VGA.printtext(70, 0, "Score:");
 }
 
 void endless() {
+	vidas = 3;
+	score = 0;
+	cactus_velocity = 6;
 	VGA.clear();
 	drawGroundLine();
 	printScoreLabel();
-	while(true){
+	while (vidas > 0) {
+
+		/* GET INPUT FROM FPGA BUTTONS*/
 		enum event_t ev = hasEvent();
-		if (ev!=event_none) {
-        	processEvent(ev);
-      	}
-      	int frame = millis() - LastFrameTime;
-		if(frame > FrameDelay){
+		if (ev != event_none) {
+			processEvent(ev);
+		}
+
+
+		int frame = millis() - LastFrameTime;
+		if (frame > FrameDelay) {
 			LastFrameTime = millis();
+
 			drawPlayer();
 			player_lastKnown_posX = player_posX;
-	      	player_lastKnown_posY = player_posY;
-	      	playerJump();
-	      	drawDots();
+			player_lastKnown_posY = player_posY;
+
+			cactus_posX -= cactus_velocity;
+			if (cactus_posX <= -15)
+			{
+				cactus_posX = 145;
+				cactus_posY = Screen_height + (cactus_height / 5);
+			}
+			drawCactus();
+			cactus_lastKnown_posX = cactus_posX;
+			cactus_lastKnown_posY = cactus_posY;
+
+			playerJump();
+			drawDots();
+			drawHearts();
+
+			detectCollisions();
 		}
-		if(scoreTimeCount >= 11000){
+		if (scoreTimeCount >= 11000) {
 			scoreTimeCount = 0;
 			score ++;
 			printScoreOnScreen();
 		}
+		if (cactusTimeCount >= 400000) {
+			cactusTimeCount = 0;
+			cactus_velocity++;
+			if (cactus_velocity >= 11)
+			{
+				cactus_velocity = 11;
+			}
+		}
 		scoreTimeCount++;
+		cactusTimeCount++;
 	}
+	saveScore(score);
+	gameState = GAMEOVER_STATE;
 }
 
 void saveScore(int score) {
@@ -185,7 +244,10 @@ void gameOver() {
 	}
 	if (!gameOverRendered) {
 		VGA.clear();
+		VGA.setColor(WHITE);
 		VGA.printtext(45, 40, "Game Over");
+		VGA.printtext(45, 60, "Press 4 to");
+		VGA.printtext(45, 70, "continue");
 		gameOverRendered = true;
 	}
 	checkInputFromGameOver();
@@ -232,4 +294,25 @@ void instructions() {
 		instructionsRendered = true;
 	}
 	checkInputFromInstructions();
+}
+
+void detectCollisions() {
+	/*CACTUS*/
+	detectCollisionsForObject(cactus_posX, cactus_posY, cactus_width, cactus_height, CACTUS_TYPE);
+}
+
+void detectCollisionsForObject(int x, int y, int width, int height, int type)
+{
+	if (player_posX < (x + width)
+			&& (player_posX + player_width) > x
+			&& player_posY < (y + height)
+			&& (player_posY + player_height) > y)
+	{
+		if (type == CACTUS_TYPE)
+		{
+			cactus_posX = 145;
+			cactus_posY = Screen_height + (cactus_height / 5);
+			vidas--;
+		}
+	}
 }
