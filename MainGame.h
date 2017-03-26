@@ -109,12 +109,14 @@ void menu() {
 	if (PlayingSound) {
 		AudioFillBuffer();
 	}
-	VGA.printtext(50, 25, "Dinosaur");
+	VGA.setColor(GREEN);
+	VGA.printtext(55, 25, "Dinno");
 	VGA.printtext(50, 40, "Runner!");
-	VGA.printtext(40, 53, "1.Start Game");
-	VGA.printtext(40, 66, "2.Scores");
-	VGA.printtext(40, 79, "3.Instructions");
+	VGA.setColor(PURPLE);
+	VGA.printtext(35, 53, "1.Start Game");
 	VGA.setColor(WHITE);
+	VGA.printtext(35, 66, "2.Scores");
+	VGA.printtext(35, 79, "3.Instructions");
 	checkInputFromMenu();
 }
 
@@ -160,7 +162,9 @@ void printScoreOnScreen() {
 }
 
 void printScoreLabel() {
+	VGA.setColor(BLUE);
 	VGA.printtext(70, 0, "Score:");
+	VGA.setColor(WHITE);
 }
 
 void endless() {
@@ -246,8 +250,10 @@ void gameOver() {
 		VGA.clear();
 		VGA.setColor(WHITE);
 		VGA.printtext(45, 40, "Game Over");
+		VGA.setColor(BLUE);
 		VGA.printtext(45, 60, "Press 4 to");
-		VGA.printtext(45, 70, "continue");
+		VGA.printtext(45, 70, "continue!");
+		VGA.setColor(WHITE);
 		gameOverRendered = true;
 	}
 	checkInputFromGameOver();
@@ -259,8 +265,9 @@ void scores() {
 	}
 	if (!scoreRendered) {
 		VGA.clear();
-		VGA.printtext(45, 30, "Best Scores");
-
+		VGA.setColor(BLUE);
+		VGA.printtext(45, 30, "Best Scores!!");
+		VGA.setColor(YELLOW);
 		char bestScore1Array [4];
 		char bestScore2Array [4];
 		char bestScore3Array [4];
@@ -287,10 +294,10 @@ void instructions() {
 	if (!instructionsRendered) {
 		VGA.clear();
 		VGA.setColor(BLUE);
-		VGA.printtext(45, 30, "Instructions");
+		VGA.printtext(40, 30, "Instructions");
 		VGA.setColor(WHITE);
 		VGA.printtext(45, 45, "Btn1 Jump");
-		VGA.printtext(45, 60, "Btn2 Duck");
+		VGA.printtext(42, 60, "Btn2 go Down");
 		instructionsRendered = true;
 	}
 	checkInputFromInstructions();
