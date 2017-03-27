@@ -1,46 +1,7 @@
 #include "Screen.h"
 #include "VGA.h"
 #include <stdlib.h>
-
-unsigned const int FrameDelay = 120;
-unsigned long LastFrameTime;
-
-const char MENU_STATE = 0;
-const char ENDLESS_STATE = 1;
-const char GAMEOVER_STATE = 2;
-const char SCORES_STATE = 3;
-const char INSTRUCTIONS_STATE = 4;
-
-char gameState = MENU_STATE;
-int timerCounter = 0;
-long xRandomPos;
-int vidas = 3;
-int score = 0;
-
-int bestScoreFirst = 0;
-int bestScoreSecond = 0;
-int bestScoreThird = 0;
-int scoreTimeCount = 0;
-int cactusTimeCount = 0;
-int cactusSpawnRate = 0;
-
-void menu();
-void endless();
-void gameOver();
-void checkInputFromMenu();
-void checkCollisions();
-void scores();
-void saveScore(int score);
-void instructions();
-void detectCollisions();
-void detectCollisionsForObject(int x, int y, int width, int height, int type);
-void updateDustCoordinates();
-void updateCloudsCoordinates();
-
-boolean scoreRendered = false;
-boolean instructionsRendered = false;
-boolean gameOverRendered = false;
-
+#include "VarInit.h"
 #include "InputManager.h"
 
 void mainGameLoop() {
@@ -163,28 +124,26 @@ void menu() {
 void drawHearts() {
 	int heartWidth = 10;
 	int heartHeight = 8;
+	int hearty = 0;
 
 	int heart1x = 10;
-	int heart1y = 0;
 
 	int heart2x = 25;
-	int heart2y = 0;
 
 	int heart3x = 40;
-	int heart3y = 0;
 
 	VGA.setColor(BLACK);
 
-	VGA.clearArea(heart1x, heart1y, heartWidth, heartHeight);
-	VGA.clearArea(heart2x, heart2y, heartWidth, heartHeight);
-	VGA.clearArea(heart3x, heart3y, heartWidth, heartHeight);
+	VGA.clearArea(heart1x, hearty, heartWidth, heartHeight);
+	VGA.clearArea(heart2x, hearty, heartWidth, heartHeight);
+	VGA.clearArea(heart3x, hearty, heartWidth, heartHeight);
 
 	if (vidas > 0) {
-		VGA.writeArea(heart1x, heart1y, heartWidth, heartHeight, heartcontainer);
+		VGA.writeArea(heart1x, hearty, heartWidth, heartHeight, heartcontainer);
 		if (vidas > 1) {
-			VGA.writeArea(heart2x, heart2y, heartWidth, heartHeight, heartcontainer);
+			VGA.writeArea(heart2x, hearty, heartWidth, heartHeight, heartcontainer);
 			if (vidas > 2) {
-				VGA.writeArea(heart3x, heart3y, heartWidth, heartHeight, heartcontainer);
+				VGA.writeArea(heart3x, hearty, heartWidth, heartHeight, heartcontainer);
 			}
 		}
 	}
@@ -206,12 +165,23 @@ void printScoreOnScreen() {
 	VGA.printtext(120, 0, sc);
 }
 
-void endless() {
+void globalReset(){
 	IsDead = false;
 	vidas = 3;
 	score = 0;
 	cactus_velocity = 6;
 	speedMult = 1;
+	timerCounter = 0;
+	scoreTimeCount = 0;
+	cactusTimeCount = 0;
+	cactusSpawnRate = 0;
+	cactus_posX = 145;
+	cactus_posY = Screen_height + (cactus_height/5);
+	ActiveCactus = false;
+}
+
+void endless() {
+	globalReset();
 	VGA.clear();
 	drawGroundLine();
 	printScoreLabel();
@@ -251,9 +221,9 @@ void endless() {
 
 			drawHearts();
 
-			cloud_x--;
-			cloud2_x--;
-			cloud3_x--;
+			cloud_x = cloud_x - (1 * speedMult);
+			cloud2_x = cloud2_x - (1 * speedMult);
+			cloud3_x = cloud3_x - (1 * speedMult);
 			drawClouds();
 			updateCloudsCoordinates();
 			
@@ -265,7 +235,7 @@ void endless() {
 			cactus_lastKnown_posX = cactus_posX;
 			cactus_lastKnown_posY = cactus_posY;
 
-			detectCollisions();
+			detectCollisionsForObject(cactus_posX, cactus_posY, cactus_width, cactus_height, CACTUS_TYPE);
 		}
 		if (scoreTimeCount >= 11000) {
 			scoreTimeCount = 0;
@@ -275,9 +245,9 @@ void endless() {
 		if (cactusTimeCount >= 200000) {
 			cactusTimeCount = 0;
 			cactus_velocity++;
-			if (cactus_velocity >= 15)
+			if (cactus_velocity >= 20)
 			{
-				cactus_velocity = 15;
+				cactus_velocity = 20;
 			}
 		}
 		if (cactusSpawnRate >= 25000) {
@@ -309,12 +279,20 @@ void saveScore(int score) {
 	}
 }
 
+void clearClouds(){
+	VGA.setColor(BLACK);
+	VGA.clearArea(cloud_lastKnown_x, cloud_lastKnown_y, cloud_width, cloud_height);
+	VGA.clearArea(cloud2_lastKnown_x, cloud2_lastKnown_y, cloud2_width, cloud2_height);
+	VGA.clearArea(cloud3_lastKnown_x, cloud3_lastKnown_y, cloud3_width, cloud3_height);
+}
+
 void gameOver(){
 	if (!gameOverRendered) {
+		drawHearts();
+		clearClouds();
 		IsDead = true;
+		IsRunning = false;
 		drawPlayer();
-		VGA.setColor(BLACK);
-		VGA.clearArea(35, 30, 100, 50);
 		VGA.setColor(WHITE);
 		VGA.printtext(45, 40, "Game Over");
 		VGA.setColor(BLUE);
@@ -365,11 +343,6 @@ void instructions() {
 	checkInputFromInstructions();
 }
 
-void detectCollisions() {
-	/*CACTUS*/
-	detectCollisionsForObject(cactus_posX, cactus_posY, cactus_width, cactus_height, CACTUS_TYPE);
-}
-
 void detectCollisionsForObject(int x, int y, int width, int height, int type)
 {
 	if (player_posX < (x + width)
@@ -413,9 +386,6 @@ void updateDustCoordinates(){
 	dust_lastKnown_x8 = dust_x8;
 	dust_lastKnown_y8 = dust_y8;
 
-	dust_lastKnown_x9 = dust_x9;
-	dust_lastKnown_y9 = dust_y9;
-
 	if (dust_x <= 0){
 		dust_x = 160;
 	}
@@ -439,9 +409,6 @@ void updateDustCoordinates(){
 	}
 	if (dust_x8 <= 0){
 		dust_x8 = 160;
-	}
-	if (dust_x9 <= 0){
-		dust_x9 = 160;
 	}
 }
 

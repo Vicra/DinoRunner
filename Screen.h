@@ -50,15 +50,15 @@ void drawGroundLine() {
 
 void drawDots() {
 	VGA.setColor(BLACK);
-	dust_x -= cactus_velocity;
-	dust_x2 -= cactus_velocity;
-	dust_x3 -= cactus_velocity;
-	dust_x4 -= cactus_velocity;
-	dust_x5 -= cactus_velocity;
-	dust_x6 -= cactus_velocity;
-	dust_x7 -= cactus_velocity;
-	dust_x8 -= cactus_velocity;
-	dust_x9 -= cactus_velocity;
+	int offset = (cactus_velocity/4) * speedMult;
+	dust_x -= offset;
+	dust_x2 -= offset;
+	dust_x3 -= offset;
+	dust_x4 -= offset;
+	dust_x5 -= offset;
+	dust_x6 -= offset;
+	dust_x7 -= offset;
+	dust_x8 -= offset;
 
 	VGA.clearArea(dust_lastKnown_x, dust_lastKnown_y, 1, 1);
 	VGA.writeArea(dust_x, dust_y, 1, 1, dust1);
@@ -83,9 +83,6 @@ void drawDots() {
 
 	VGA.clearArea(dust_lastKnown_x8, dust_lastKnown_y8, 1, 1);
 	VGA.writeArea(dust_x8, dust_y8, 1, 1, dust1);
-
-	VGA.clearArea(dust_lastKnown_x9, dust_lastKnown_y9, 1, 1);
-	VGA.writeArea(dust_x9, dust_y9, 1, 1, dust1);
 }
 
 void drawCactus() {
