@@ -39,6 +39,7 @@ const int defaultFasterVelocity = 50; // velocity to drop
 int down_velocity = defaultVelocity;
 
 int cactus_velocity = 6;
+int speedMult = 1;
 
 typedef VGA_class::pixel_t groundLine;
 typedef VGA_class::pixel_t cactus[13*20];

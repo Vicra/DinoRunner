@@ -107,6 +107,7 @@ void processEvent(enum event_t ev) {
 	else if (ev == event_3) {
 		if (!IsJumping && !IsDropping) {
 			IsRunning = true;
+			speedMult = 2;
 		}
 	}
 }
@@ -203,6 +204,7 @@ void endless() {
 	vidas = 3;
 	score = 0;
 	cactus_velocity = 6;
+	speedMult = 1;
 	VGA.clear();
 	drawGroundLine();
 	printScoreLabel();
@@ -216,15 +218,17 @@ void endless() {
 			processEvent(ev);
 		}
 
-		if(ev == event_none)
+		if(ev == event_none){
+			speedMult = 1;
 			IsRunning = false;
+		}
 
 
 		int frame = millis() - LastFrameTime;
 		if (frame > FrameDelay) {
 			LastFrameTime = millis();
 
-			cactus_posX -= cactus_velocity;
+			cactus_posX -= (cactus_velocity * speedMult);
 			if (cactus_posX <= -15)
 			{
 				cactus_posX = 145;
@@ -255,7 +259,7 @@ void endless() {
 		}
 		if (scoreTimeCount >= 11000) {
 			scoreTimeCount = 0;
-			score ++;
+			score = score + (1 * speedMult);
 			printScoreOnScreen();
 		}
 		if (cactusTimeCount >= 200000) {
