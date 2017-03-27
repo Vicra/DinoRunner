@@ -13,9 +13,12 @@ void drawPlayer(){
 	{
 		player_layer_count = 2;
 	}
-	else if (IsDucking)
+	else if (IsRunning)
 	{
-		player_layer_count = 0;
+		if (player_layer_count == 4)
+			player_layer_count = 5;
+		else
+			player_layer_count = 4;
 	}
 	else
 	{
@@ -25,7 +28,14 @@ void drawPlayer(){
 	}
 	VGA.setColor(BLACK);
 	VGA.clearArea(player_lastKnown_posX, player_lastKnown_posY, player_width, player_height);
-	VGA.writeArea(player_posX, player_posY, player_width, player_height, player_layers[player_layer_count]);
+	VGA.clearArea(player_lastKnown_posX, player_lastKnown_posY, 29, 11);
+	if(IsRunning){
+		VGA.writeArea(player_posX, 90, 29, 11, player_layers[player_layer_count]);
+	}
+	else{
+		VGA.clearArea(player_lastKnown_posX, 90, 29, 11);
+		VGA.writeArea(player_posX, player_posY, player_width, player_height, player_layers[player_layer_count]);
+	}
 }
 
 void drawGroundLine() {

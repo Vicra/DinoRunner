@@ -1,5 +1,3 @@
-#include "Sound.h"
-#include "Input.h"
 #include "Screen.h"
 #include "VGA.h"
 #include <stdlib.h>
@@ -42,7 +40,7 @@ boolean scoreRendered = false;
 boolean instructionsRendered = false;
 boolean gameOverRendered = false;
 
-#include "CheckInputs.h"
+#include "InputManager.h"
 
 void mainGameLoop() {
 	switch (gameState) {
@@ -95,6 +93,7 @@ void playerJump() {
 }
 
 void processEvent(enum event_t ev) {
+	IsRunning = false;
 	if (ev == event_1) {
 		if (!IsJumping) {
 			IsJumping = true;
@@ -105,12 +104,49 @@ void processEvent(enum event_t ev) {
 			IsDropping = true;
 		}
 	}
+	else if (ev == event_3) {
+		if (!IsJumping && !IsDropping) {
+			IsRunning = true;
+		}
+	}
+}
+
+void printScoreLabel() {
+	VGA.setColor(BLUE);
+	VGA.printtext(70, 0, "Score:");
+	VGA.setColor(WHITE);
+}
+
+void checkPause()
+{
+  if(!digitalRead(FPGA_SW_0))
+  {
+    while(true)
+    {
+      VGA.setColor(227, 38, 54);
+      VGA.printtext(60,45,"PAUSED");
+      VGA.printtext(20,60,"BUTTON 4 TO EXIT");
+      
+      //salir de pausa
+      if(digitalRead(FPGA_SW_0))
+      {
+      	VGA.clear();
+		printScoreLabel();
+		drawGroundLine();
+        break;
+      }
+      //regresar al menu
+      if(digitalRead(FPGA_BTN_3))
+      {
+        vidas = 0;
+        return;
+      }
+      delay(100);
+    }
+  }
 }
 
 void menu() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
 	VGA.setColor(GREEN);
 	VGA.printtext(55, 25, "Dinno");
 	VGA.printtext(50, 40, "Runner!");
@@ -163,16 +199,7 @@ void printScoreOnScreen() {
 	VGA.printtext(120, 0, sc);
 }
 
-void printScoreLabel() {
-	VGA.setColor(BLUE);
-	VGA.printtext(70, 0, "Score:");
-	VGA.setColor(WHITE);
-}
-
 void endless() {
-	if(PlayingSound){
-	    AudioFillBuffer();
-	}
 	vidas = 3;
 	score = 0;
 	cactus_velocity = 6;
@@ -181,11 +208,16 @@ void endless() {
 	printScoreLabel();
 	while (vidas > 0) {
 
+		checkPause();
+
 		/* GET INPUT FROM FPGA BUTTONS*/
 		enum event_t ev = hasEvent();
 		if (ev != event_none) {
 			processEvent(ev);
 		}
+
+		if(ev == event_none)
+			IsRunning = false;
 
 
 		int frame = millis() - LastFrameTime;
@@ -199,10 +231,6 @@ void endless() {
 				cactus_posY = Screen_height + (cactus_height / 5);
 				randomCactus = rand() % 3;
 			}
-			drawCactus();
-			cactus_lastKnown_posX = cactus_posX;
-			cactus_lastKnown_posY = cactus_posY;
-
 			playerJump();
 			drawDots();		
 			updateDustCoordinates();
@@ -218,6 +246,10 @@ void endless() {
 			drawPlayer();
 			player_lastKnown_posX = player_posX;
 			player_lastKnown_posY = player_posY;
+
+			drawCactus();
+			cactus_lastKnown_posX = cactus_posX;
+			cactus_lastKnown_posY = cactus_posY;
 
 			detectCollisions();
 		}
@@ -256,10 +288,7 @@ void saveScore(int score) {
 	}
 }
 
-void gameOver() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
+void gameOver(){
 	if (!gameOverRendered) {
 		VGA.clear();
 		VGA.setColor(WHITE);
@@ -274,9 +303,6 @@ void gameOver() {
 }
 
 void scores() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
 	if (!scoreRendered) {
 		VGA.clear();
 		VGA.setColor(BLUE);
@@ -302,9 +328,6 @@ void scores() {
 }
 
 void instructions() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
 	if (!instructionsRendered) {
 		VGA.clear();
 		VGA.setColor(BLUE);

@@ -40,14 +40,53 @@ enum event_t hasEvent()
             time_hold = time_button_released - time_button_pressed;
             ret = event_none;
           }
-	} else if (/*!lval[1] && */cval[1]) {
+	} else if (cval[1]) {
 		ret = event_2;
-	} else if (/*!lval[2] && */cval[2]) {
+	} else if (cval[2]) {
 		ret = event_3;
-	} else if (/*!lval[3] && */cval[3]) {
+	} else if (cval[3]) {
 		ret=  event_4;
 	}
 	*((unsigned*)lval)=*((unsigned*)cval);
 
 	return ret;
+}
+
+void checkInputFromMenu() {
+	if (digitalRead(BUTTON_1)) {
+		gameState = ENDLESS_STATE;
+		VGA.clear();
+	}
+	if (digitalRead(BUTTON_2)) {
+		gameState = SCORES_STATE;
+		VGA.clear();
+	}
+	if (digitalRead(BUTTON_3)) {
+		gameState = INSTRUCTIONS_STATE;
+		VGA.clear();
+	}
+}
+
+void checkInputFromGameOver() {
+	if (digitalRead(BUTTON_4)) {
+		gameState = MENU_STATE;
+		gameOverRendered = false;
+		VGA.clear();
+	}
+}
+
+void checkInputFromScores() {
+	if (digitalRead(BUTTON_4)) {
+		gameState = MENU_STATE;
+		scoreRendered = false;
+		VGA.clear();
+	}
+}
+
+void checkInputFromInstructions() {
+	if (digitalRead(BUTTON_4)) {
+		gameState = MENU_STATE;
+		instructionsRendered = false;
+		VGA.clear();
+	}
 }
