@@ -58,7 +58,6 @@ void drawDots() {
 	dust_x5 -= offset;
 	dust_x6 -= offset;
 	dust_x7 -= offset;
-	dust_x8 -= offset;
 
 	VGA.clearArea(dust_lastKnown_x, dust_lastKnown_y, 1, 1);
 	VGA.writeArea(dust_x, dust_y, 1, 1, dust1);
@@ -80,9 +79,6 @@ void drawDots() {
 
 	VGA.clearArea(dust_lastKnown_x7, dust_lastKnown_y7, 1, 1);
 	VGA.writeArea(dust_x7, dust_y7, 1, 1, dust1);
-
-	VGA.clearArea(dust_lastKnown_x8, dust_lastKnown_y8, 1, 1);
-	VGA.writeArea(dust_x8, dust_y8, 1, 1, dust1);
 }
 
 void drawCactus() {
