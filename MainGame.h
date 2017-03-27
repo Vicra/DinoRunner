@@ -35,6 +35,8 @@ void saveScore(int score);
 void instructions();
 void detectCollisions();
 void detectCollisionsForObject(int x, int y, int width, int height, int type);
+void updateDustCoordinates();
+void updateCloudsCoordinates();
 
 boolean scoreRendered = false;
 boolean instructionsRendered = false;
@@ -65,7 +67,7 @@ void mainGameLoop() {
 void playerJump() {
 	if (IsJumping)
 	{
-		if (player_posY <= 30) { // as higher as he can get
+		if (player_posY <= 40) { // as higher as he can get
 			landing = true;
 		}
 
@@ -168,6 +170,9 @@ void printScoreLabel() {
 }
 
 void endless() {
+	if(PlayingSound){
+	    AudioFillBuffer();
+	}
 	vidas = 3;
 	score = 0;
 	cactus_velocity = 6;
@@ -187,23 +192,32 @@ void endless() {
 		if (frame > FrameDelay) {
 			LastFrameTime = millis();
 
-			drawPlayer();
-			player_lastKnown_posX = player_posX;
-			player_lastKnown_posY = player_posY;
-
 			cactus_posX -= cactus_velocity;
 			if (cactus_posX <= -15)
 			{
 				cactus_posX = 145;
 				cactus_posY = Screen_height + (cactus_height / 5);
+				randomCactus = rand() % 3;
 			}
 			drawCactus();
 			cactus_lastKnown_posX = cactus_posX;
 			cactus_lastKnown_posY = cactus_posY;
 
 			playerJump();
-			drawDots();
+			drawDots();		
+			updateDustCoordinates();
+
 			drawHearts();
+
+			cloud_x--;
+			cloud2_x--;
+			cloud3_x--;
+			drawClouds();
+			updateCloudsCoordinates();
+			
+			drawPlayer();
+			player_lastKnown_posX = player_posX;
+			player_lastKnown_posY = player_posY;
 
 			detectCollisions();
 		}
@@ -212,12 +226,12 @@ void endless() {
 			score ++;
 			printScoreOnScreen();
 		}
-		if (cactusTimeCount >= 400000) {
+		if (cactusTimeCount >= 200000) {
 			cactusTimeCount = 0;
 			cactus_velocity++;
-			if (cactus_velocity >= 11)
+			if (cactus_velocity >= 15)
 			{
-				cactus_velocity = 11;
+				cactus_velocity = 15;
 			}
 		}
 		scoreTimeCount++;
@@ -320,6 +334,88 @@ void detectCollisionsForObject(int x, int y, int width, int height, int type)
 			cactus_posX = 145;
 			cactus_posY = Screen_height + (cactus_height / 5);
 			vidas--;
+			randomCactus = rand() % 3;
 		}
+	}
+}
+
+void updateDustCoordinates(){
+	dust_lastKnown_x = dust_x;
+	dust_lastKnown_y = dust_y;
+
+	dust_lastKnown_x2 = dust_x2;
+	dust_lastKnown_y2 = dust_y2;
+
+	dust_lastKnown_x3 = dust_x3;
+	dust_lastKnown_y3 = dust_y3;
+
+	dust_lastKnown_x4 = dust_x4;
+	dust_lastKnown_y4 = dust_y4;
+
+	dust_lastKnown_x5 = dust_x5;
+	dust_lastKnown_y5 = dust_y5;
+
+	dust_lastKnown_x6 = dust_x6;
+	dust_lastKnown_y6 = dust_y6;
+
+	dust_lastKnown_x7 = dust_x7;
+	dust_lastKnown_y7 = dust_y7;
+
+	dust_lastKnown_x8 = dust_x8;
+	dust_lastKnown_y8 = dust_y8;
+
+	dust_lastKnown_x9 = dust_x9;
+	dust_lastKnown_y9 = dust_y9;
+
+	if (dust_x <= 0){
+		dust_x = 160;
+	}
+	if (dust_x2 <= 0){
+		dust_x2 = 160;
+	}
+	if (dust_x3 <= 0){
+		dust_x3 = 160;
+	}
+	if (dust_x4 <= 0){
+		dust_x4 = 160;
+	}
+	if (dust_x5 <= 0){
+		dust_x5 = 160;
+	}
+	if (dust_x6 <= 0){
+		dust_x6 = 160;
+	}
+	if (dust_x7 <= 0){
+		dust_x7 = 160;
+	}
+	if (dust_x8 <= 0){
+		dust_x8 = 160;
+	}
+	if (dust_x9 <= 0){
+		dust_x9 = 160;
+	}
+}
+
+void updateCloudsCoordinates(){
+	cloud_lastKnown_x = cloud_x;
+	cloud_lastKnown_y = cloud_y;
+
+	cloud2_lastKnown_x = cloud2_x;
+	cloud2_lastKnown_y = cloud2_y;
+
+	cloud3_lastKnown_x = cloud3_x;
+	cloud3_lastKnown_y = cloud3_y;
+
+	if (cloud_x <= 0){
+		cloud_x = 145;
+		cloud_y = (rand()%(40-10))+10;
+	}
+	if (cloud2_x <= 0){
+		cloud2_x = 145;
+		cloud2_y = (rand()%(40-10))+10;
+	}
+	if (cloud3_x <= 0){
+		cloud3_x = 145;
+		cloud3_y = (rand()%(40-10))+10;
 	}
 }
