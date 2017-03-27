@@ -1,48 +1,8 @@
-#include "Sound.h"
-#include "Input.h"
 #include "Screen.h"
 #include "VGA.h"
 #include <stdlib.h>
-
-unsigned const int FrameDelay = 120;
-unsigned long LastFrameTime;
-
-const char MENU_STATE = 0;
-const char ENDLESS_STATE = 1;
-const char GAMEOVER_STATE = 2;
-const char SCORES_STATE = 3;
-const char INSTRUCTIONS_STATE = 4;
-
-char gameState = MENU_STATE;
-int timerCounter = 0;
-long xRandomPos;
-int vidas = 3;
-int score = 0;
-
-int bestScoreFirst = 0;
-int bestScoreSecond = 0;
-int bestScoreThird = 0;
-int scoreTimeCount = 0;
-int cactusTimeCount = 0;
-
-void menu();
-void endless();
-void gameOver();
-void checkInputFromMenu();
-void checkCollisions();
-void scores();
-void saveScore(int score);
-void instructions();
-void detectCollisions();
-void detectCollisionsForObject(int x, int y, int width, int height, int type);
-void updateDustCoordinates();
-void updateCloudsCoordinates();
-
-boolean scoreRendered = false;
-boolean instructionsRendered = false;
-boolean gameOverRendered = false;
-
-#include "CheckInputs.h"
+#include "VarInit.h"
+#include "InputManager.h"
 
 void mainGameLoop() {
 	switch (gameState) {
@@ -95,6 +55,7 @@ void playerJump() {
 }
 
 void processEvent(enum event_t ev) {
+	IsRunning = false;
 	if (ev == event_1) {
 		if (!IsJumping) {
 			IsJumping = true;
@@ -105,12 +66,50 @@ void processEvent(enum event_t ev) {
 			IsDropping = true;
 		}
 	}
+	else if (ev == event_3) {
+		if (!IsJumping && !IsDropping) {
+			IsRunning = true;
+			speedMult = 2;
+		}
+	}
+}
+
+void printScoreLabel() {
+	VGA.setColor(BLUE);
+	VGA.printtext(70, 0, "Score:");
+	VGA.setColor(WHITE);
+}
+
+void checkPause()
+{
+  if(!digitalRead(FPGA_SW_0))
+  {
+    while(true)
+    {
+      VGA.setColor(227, 38, 54);
+      VGA.printtext(60,45,"PAUSED");
+      VGA.printtext(20,60,"BUTTON 4 TO EXIT");
+      
+      //salir de pausa
+      if(digitalRead(FPGA_SW_0))
+      {
+      	VGA.clear();
+		printScoreLabel();
+		drawGroundLine();
+        break;
+      }
+      //regresar al menu
+      if(digitalRead(FPGA_BTN_3))
+      {
+        vidas = 0;
+        return;
+      }
+      delay(100);
+    }
+  }
 }
 
 void menu() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
 	VGA.setColor(GREEN);
 	VGA.printtext(55, 25, "Dinno");
 	VGA.printtext(50, 40, "Runner!");
@@ -125,35 +124,38 @@ void menu() {
 void drawHearts() {
 	int heartWidth = 10;
 	int heartHeight = 8;
+	int hearty = 0;
 
 	int heart1x = 10;
-	int heart1y = 0;
 
 	int heart2x = 25;
-	int heart2y = 0;
 
 	int heart3x = 40;
-	int heart3y = 0;
 
 	VGA.setColor(BLACK);
 
-	VGA.clearArea(heart1x, heart1y, heartWidth, heartHeight);
-	VGA.clearArea(heart2x, heart2y, heartWidth, heartHeight);
-	VGA.clearArea(heart3x, heart3y, heartWidth, heartHeight);
+	VGA.clearArea(heart1x, hearty, heartWidth, heartHeight);
+	VGA.clearArea(heart2x, hearty, heartWidth, heartHeight);
+	VGA.clearArea(heart3x, hearty, heartWidth, heartHeight);
 
 	if (vidas > 0) {
-		VGA.writeArea(heart1x, heart1y, heartWidth, heartHeight, heartcontainer);
+		VGA.writeArea(heart1x, hearty, heartWidth, heartHeight, heartcontainer);
 		if (vidas > 1) {
-			VGA.writeArea(heart2x, heart2y, heartWidth, heartHeight, heartcontainer);
+			VGA.writeArea(heart2x, hearty, heartWidth, heartHeight, heartcontainer);
 			if (vidas > 2) {
-				VGA.writeArea(heart3x, heart3y, heartWidth, heartHeight, heartcontainer);
+				VGA.writeArea(heart3x, hearty, heartWidth, heartHeight, heartcontainer);
 			}
 		}
 	}
 }
 
-void redraw() {
-
+void cactusAppear() {
+	if (!ActiveCactus){
+		int cactusGen = rand() % 2;
+		if (cactusGen == 1){
+			ActiveCactus = true;
+		}
+	}
 }
 
 void printScoreOnScreen() {
@@ -163,23 +165,29 @@ void printScoreOnScreen() {
 	VGA.printtext(120, 0, sc);
 }
 
-void printScoreLabel() {
-	VGA.setColor(BLUE);
-	VGA.printtext(70, 0, "Score:");
-	VGA.setColor(WHITE);
-}
-
-void endless() {
-	if(PlayingSound){
-	    AudioFillBuffer();
-	}
+void globalReset(){
+	IsDead = false;
 	vidas = 3;
 	score = 0;
 	cactus_velocity = 6;
+	speedMult = 1;
+	timerCounter = 0;
+	scoreTimeCount = 0;
+	cactusTimeCount = 0;
+	cactusSpawnRate = 0;
+	cactus_posX = 145;
+	cactus_posY = Screen_height + (cactus_height/5);
+	ActiveCactus = false;
+}
+
+void endless() {
+	globalReset();
 	VGA.clear();
 	drawGroundLine();
 	printScoreLabel();
 	while (vidas > 0) {
+
+		checkPause();
 
 		/* GET INPUT FROM FPGA BUTTONS*/
 		enum event_t ev = hasEvent();
@@ -187,31 +195,35 @@ void endless() {
 			processEvent(ev);
 		}
 
+		if(ev == event_none){
+			speedMult = 1;
+			IsRunning = false;
+		}
+
 
 		int frame = millis() - LastFrameTime;
 		if (frame > FrameDelay) {
 			LastFrameTime = millis();
 
-			cactus_posX -= cactus_velocity;
-			if (cactus_posX <= -15)
-			{
-				cactus_posX = 145;
-				cactus_posY = Screen_height + (cactus_height / 5);
-				randomCactus = rand() % 3;
-			}
-			drawCactus();
-			cactus_lastKnown_posX = cactus_posX;
-			cactus_lastKnown_posY = cactus_posY;
-
+			if(ActiveCactus){
+				cactus_posX -= (cactus_velocity * speedMult);
+				if (cactus_posX <= -5)
+				{
+					cactus_posX = 145;
+					cactus_posY = Screen_height + (cactus_height / 5);
+					randomCactus = rand() % 3;
+					ActiveCactus = false;
+					}
+				}
 			playerJump();
 			drawDots();		
 			updateDustCoordinates();
 
 			drawHearts();
 
-			cloud_x--;
-			cloud2_x--;
-			cloud3_x--;
+			cloud_x = cloud_x - (1 * speedMult);
+			cloud2_x = cloud2_x - (1 * speedMult);
+			cloud3_x = cloud3_x - (1 * speedMult);
 			drawClouds();
 			updateCloudsCoordinates();
 			
@@ -219,23 +231,34 @@ void endless() {
 			player_lastKnown_posX = player_posX;
 			player_lastKnown_posY = player_posY;
 
-			detectCollisions();
+			drawCactus();
+			cactus_lastKnown_posX = cactus_posX;
+			cactus_lastKnown_posY = cactus_posY;
+
+			detectCollisionsForObject(cactus_posX, cactus_posY, cactus_width, cactus_height, CACTUS_TYPE);
 		}
 		if (scoreTimeCount >= 11000) {
 			scoreTimeCount = 0;
-			score ++;
+			score = score + (1 * speedMult);
 			printScoreOnScreen();
 		}
 		if (cactusTimeCount >= 200000) {
 			cactusTimeCount = 0;
 			cactus_velocity++;
-			if (cactus_velocity >= 15)
+			if (cactus_velocity >= 20)
 			{
-				cactus_velocity = 15;
+				cactus_velocity = 20;
+			}
+		}
+		if (cactusSpawnRate >= 25000) {
+			cactusSpawnRate = 0;
+			if(!ActiveCactus){
+				cactusAppear();
 			}
 		}
 		scoreTimeCount++;
 		cactusTimeCount++;
+		cactusSpawnRate++;
 	}
 	saveScore(score);
 	gameState = GAMEOVER_STATE;
@@ -256,12 +279,20 @@ void saveScore(int score) {
 	}
 }
 
-void gameOver() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
+void clearClouds(){
+	VGA.setColor(BLACK);
+	VGA.clearArea(cloud_lastKnown_x, cloud_lastKnown_y, cloud_width, cloud_height);
+	VGA.clearArea(cloud2_lastKnown_x, cloud2_lastKnown_y, cloud2_width, cloud2_height);
+	VGA.clearArea(cloud3_lastKnown_x, cloud3_lastKnown_y, cloud3_width, cloud3_height);
+}
+
+void gameOver(){
 	if (!gameOverRendered) {
-		VGA.clear();
+		drawHearts();
+		clearClouds();
+		IsDead = true;
+		IsRunning = false;
+		drawPlayer();
 		VGA.setColor(WHITE);
 		VGA.printtext(45, 40, "Game Over");
 		VGA.setColor(BLUE);
@@ -274,9 +305,6 @@ void gameOver() {
 }
 
 void scores() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
 	if (!scoreRendered) {
 		VGA.clear();
 		VGA.setColor(BLUE);
@@ -302,24 +330,17 @@ void scores() {
 }
 
 void instructions() {
-	if (PlayingSound) {
-		AudioFillBuffer();
-	}
 	if (!instructionsRendered) {
 		VGA.clear();
 		VGA.setColor(BLUE);
 		VGA.printtext(40, 30, "Instructions");
 		VGA.setColor(WHITE);
 		VGA.printtext(45, 45, "Btn1 Jump");
-		VGA.printtext(42, 60, "Btn2 go Down");
+		VGA.printtext(42, 60, "Btn2 Go down");
+		VGA.printtext(42, 75, "Btn3 Run");
 		instructionsRendered = true;
 	}
 	checkInputFromInstructions();
-}
-
-void detectCollisions() {
-	/*CACTUS*/
-	detectCollisionsForObject(cactus_posX, cactus_posY, cactus_width, cactus_height, CACTUS_TYPE);
 }
 
 void detectCollisionsForObject(int x, int y, int width, int height, int type)
@@ -335,6 +356,7 @@ void detectCollisionsForObject(int x, int y, int width, int height, int type)
 			cactus_posY = Screen_height + (cactus_height / 5);
 			vidas--;
 			randomCactus = rand() % 3;
+			ActiveCactus = false;
 		}
 	}
 }
@@ -364,9 +386,6 @@ void updateDustCoordinates(){
 	dust_lastKnown_x8 = dust_x8;
 	dust_lastKnown_y8 = dust_y8;
 
-	dust_lastKnown_x9 = dust_x9;
-	dust_lastKnown_y9 = dust_y9;
-
 	if (dust_x <= 0){
 		dust_x = 160;
 	}
@@ -390,9 +409,6 @@ void updateDustCoordinates(){
 	}
 	if (dust_x8 <= 0){
 		dust_x8 = 160;
-	}
-	if (dust_x9 <= 0){
-		dust_x9 = 160;
 	}
 }
 

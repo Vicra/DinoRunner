@@ -4,7 +4,6 @@
 
 void setup()
 {
-	SoundSetup();
 	ScreenSetup();
 	Serial.begin(9600);
 }
