@@ -178,6 +178,20 @@ void globalReset(){
 	cactus_posX = 145;
 	cactus_posY = Screen_height + (cactus_height/5);
 	ActiveCactus = false;
+	dust_x = 5;
+	dust_y = 110;
+	dust_x2 = 18;
+	dust_y2 = 113;
+	dust_x3 = 36;
+	dust_y3 = 108;
+	dust_x4 = 54;
+	dust_y4 = 111;
+	dust_x5 = 73;
+	dust_y5 = 114;
+	dust_x6 = 94;
+	dust_y6 = 109;
+	dust_x7 = 120;
+	dust_y7 = 107;
 }
 
 void endless() {
@@ -383,9 +397,6 @@ void updateDustCoordinates(){
 	dust_lastKnown_x7 = dust_x7;
 	dust_lastKnown_y7 = dust_y7;
 
-	dust_lastKnown_x8 = dust_x8;
-	dust_lastKnown_y8 = dust_y8;
-
 	if (dust_x <= 0){
 		dust_x = 160;
 	}
@@ -406,9 +417,6 @@ void updateDustCoordinates(){
 	}
 	if (dust_x7 <= 0){
 		dust_x7 = 160;
-	}
-	if (dust_x8 <= 0){
-		dust_x8 = 160;
 	}
 }
 

@@ -115,11 +115,6 @@ int dust_y7 = 107;
 int dust_lastKnown_x7;
 int dust_lastKnown_y7;
 
-int dust_x8 = 132;
-int dust_y8 = 112;
-int dust_lastKnown_x8;
-int dust_lastKnown_y8;
-
 int randomCactus = 0;
 
 // 1 x 1
