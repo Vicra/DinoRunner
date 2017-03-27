@@ -91,7 +91,10 @@ void drawDots() {
 void drawCactus() {
 	VGA.setColor(BLACK);
 	VGA.clearArea(cactus_lastKnown_posX, cactus_lastKnown_posY, cactus_width, cactus_height);
-	VGA.writeArea(cactus_posX, cactus_posY, cactus_width, cactus_height, cactusPixel[randomCactus]);
+	if (!ActiveCactus)
+		VGA.writeArea(cactus_posX, cactus_posY, cactus_width, cactus_height, cactusPixel[3]);
+	else
+		VGA.writeArea(cactus_posX, cactus_posY, cactus_width, cactus_height, cactusPixel[randomCactus]);
 }
 
 void drawClouds(){

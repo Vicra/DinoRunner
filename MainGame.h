@@ -22,6 +22,7 @@ int bestScoreSecond = 0;
 int bestScoreThird = 0;
 int scoreTimeCount = 0;
 int cactusTimeCount = 0;
+int cactusSpawnRate = 0;
 
 void menu();
 void endless();
@@ -189,8 +190,13 @@ void drawHearts() {
 	}
 }
 
-void redraw() {
-
+void cactusAppear() {
+	if (!ActiveCactus){
+		int cactusGen = rand() % 2;
+		if (cactusGen == 1){
+			ActiveCactus = true;
+		}
+	}
 }
 
 void printScoreOnScreen() {
@@ -229,13 +235,16 @@ void endless() {
 		if (frame > FrameDelay) {
 			LastFrameTime = millis();
 
-			cactus_posX -= (cactus_velocity * speedMult);
-			if (cactus_posX <= -15)
-			{
-				cactus_posX = 145;
-				cactus_posY = Screen_height + (cactus_height / 5);
-				randomCactus = rand() % 3;
-			}
+			if(ActiveCactus){
+				cactus_posX -= (cactus_velocity * speedMult);
+				if (cactus_posX <= -5)
+				{
+					cactus_posX = 145;
+					cactus_posY = Screen_height + (cactus_height / 5);
+					randomCactus = rand() % 3;
+					ActiveCactus = false;
+					}
+				}
 			playerJump();
 			drawDots();		
 			updateDustCoordinates();
@@ -271,8 +280,15 @@ void endless() {
 				cactus_velocity = 15;
 			}
 		}
+		if (cactusSpawnRate >= 25000) {
+			cactusSpawnRate = 0;
+			if(!ActiveCactus){
+				cactusAppear();
+			}
+		}
 		scoreTimeCount++;
 		cactusTimeCount++;
+		cactusSpawnRate++;
 	}
 	saveScore(score);
 	gameState = GAMEOVER_STATE;
@@ -342,7 +358,8 @@ void instructions() {
 		VGA.printtext(40, 30, "Instructions");
 		VGA.setColor(WHITE);
 		VGA.printtext(45, 45, "Btn1 Jump");
-		VGA.printtext(42, 60, "Btn2 go Down");
+		VGA.printtext(42, 60, "Btn2 Go down");
+		VGA.printtext(42, 75, "Btn3 Run");
 		instructionsRendered = true;
 	}
 	checkInputFromInstructions();
@@ -366,6 +383,7 @@ void detectCollisionsForObject(int x, int y, int width, int height, int type)
 			cactus_posY = Screen_height + (cactus_height / 5);
 			vidas--;
 			randomCactus = rand() % 3;
+			ActiveCactus = false;
 		}
 	}
 }
