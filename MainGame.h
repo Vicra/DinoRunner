@@ -201,6 +201,7 @@ void printScoreOnScreen() {
 }
 
 void endless() {
+	IsDead = false;
 	vidas = 3;
 	score = 0;
 	cactus_velocity = 6;
@@ -294,7 +295,10 @@ void saveScore(int score) {
 
 void gameOver(){
 	if (!gameOverRendered) {
-		VGA.clear();
+		IsDead = true;
+		drawPlayer();
+		VGA.setColor(BLACK);
+		VGA.clearArea(35, 30, 100, 50);
 		VGA.setColor(WHITE);
 		VGA.printtext(45, 40, "Game Over");
 		VGA.setColor(BLUE);

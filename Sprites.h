@@ -16,6 +16,7 @@ typedef VGA_class::pixel_t player_layer[player_width*player_height];
 bool IsJumping = false;
 bool IsDropping = false;
 bool IsRunning = false;
+bool IsDead = false;
 
 /* PLAYER INITIAL POSITIONS*/ 
 int player_posX = 5;
